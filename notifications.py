@@ -35,10 +35,12 @@ class _NotificationChannel(object):
 
 class _rocketchat(_NotificationChannel):
     def __init__(self):
+        logger.debug(f"{type(self)} instantiated")
         config = configparser.ConfigParser()
-        config.read("/home/ls6/pfister/.nofconfig")
+        config.read("~/.nofconfig")
         self.config: Dict[str, str] = config["rocketchat"]
         self._new_rc_connection()
+        logger.debug(f"{self.config['username']} will notify {self.config['yourUsername']}")
 
     def _new_rc_connection(self):
         from rocketchat.api import RocketChatAPI
@@ -66,8 +68,10 @@ class _rocketchat(_NotificationChannel):
 class _webhook(_NotificationChannel):
     def __init__(self):
         logger.debug(f"{type(self)} instantiated")
-        self.url = ""  # where to get from?
-        logger.info(f"webhook url: {self.url}")
+        config = configparser.ConfigParser()
+        config.read("~/.nofconfig")
+        self.config: Dict[str, str] = config["webhook"]
+        logger.info(f"webhook url: {self.config['url']}")
 
     def notify(self, event: Dict[str, str]):
         pass
