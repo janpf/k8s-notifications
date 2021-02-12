@@ -9,20 +9,41 @@ config_file = Path.home() / ".nofconfig"
 
 
 class _NotificationChannel(object):
+    """
+    Interface for new channels.
+    New channels only *need* to overwrite "_send"
+    If a persistent connection is used, optionally "_connect" as well
+    If the message should be formatted differently for a channel, overwrite "_pprint"
+    """
     def __init__(self):
-        raise NotImplementedError
+        logger.debug(f"{self.__class__.__name__} instantiated")
+        config = configparser.ConfigParser()
+        config.read(config_file)
+        self.config: Dict[str, str] = config[str(self.__class__.__name__)[1:]]
+        self._connect()
 
-    def notify(self, event: str) -> None:
-        raise NotImplementedError
+    def _connect(self) -> None:
+        pass
 
-    def pprint(self, event: Dict) -> str:
+    def _pprint(self, event: Dict) -> str:
         """
         formats the kubernetes event into a nicely readable string
-        :param event:
-        :return:
         """
         return f"{event['type']}: {event['object'].kind} {event['object'].metadata.name} ({event['object'].metadata.owner_references[0].kind} {event['object'].metadata.owner_references[0].name})"
 
+    def _send(self, msg:str) -> None:
+        raise NotImplementedError
+
+    def notify(self, event: Dict) -> None:
+        msg = self._pprint(event)
+        try:
+            self._send(msg)
+        except:
+            self._connect()
+            try:
+                self._send(msg)
+            except Exception as e:
+                logger.error(e)
 
 class NotificationManager(object):
     def __init__(self, notification_channels: List[str]):
@@ -32,27 +53,19 @@ class NotificationManager(object):
     @staticmethod
     def _getChannel(channelName: str) -> _NotificationChannel:
         import notifications as notif
-
         return getattr(notif, "_" + channelName)()
 
     def notify(self, event) -> None:
         for channel in self.notification_channels:
             logger.debug(f"notifying {channel} about {event['type']}")
-            channel.notify(channel.pprint(event))
+            channel.notify(event)
 
+
+# implement new channels below!
 
 class _rocketchat(_NotificationChannel):
-    def __init__(self):
-        logger.debug(f"{type(self)} instantiated")
-        config = configparser.ConfigParser()
-        config.read(config_file)
-        self.config: Dict[str, str] = config["rocketchat"]
-        self._new_rc_connection()
-        logger.debug(f"{self.config['username']} will notify {self.config['yourUsername']}")
-
-    def _new_rc_connection(self):
+    def _connect(self):
         from rocketchat.api import RocketChatAPI
-
         self.rc = RocketChatAPI(
             settings={
                 "username": self.config["username"],
@@ -61,27 +74,7 @@ class _rocketchat(_NotificationChannel):
             }
         )
         logging.getLogger("base").setLevel(logging.WARN) # FIXME still logs on debug level
-
         self.im_room = self.rc.create_im_room(self.config["yourUsername"])
 
-    def notify(self, event: str):
-        try:
-            self.rc.send_message(message=str(event), room_id=self.im_room["id"])
-        except:
-            self._new_rc_connection()
-            try:
-                self.rc.send_message(message=str(event), room_id=self.im_room["id"])
-            except Exception as e:
-                logger.error(e)
-
-
-class _webhook(_NotificationChannel):
-    def __init__(self):
-        logger.debug(f"{type(self)} instantiated")
-        config = configparser.ConfigParser()
-        config.read(config_file)
-        self.config: Dict[str, str] = config["webhook"]
-        logger.info(f"webhook url: {self.config['url']}")
-
-    def notify(self, event: str):
-        raise NotImplementedError()
+    def _send(self, message: str):
+        self.rc.send_message(message=message, room_id=self.im_room["id"])
