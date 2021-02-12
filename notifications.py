@@ -1,5 +1,7 @@
 import logging
 from typing import Dict, List
+import configparser
+
 
 logger = logging.getLogger("notification_manager")
 
@@ -17,6 +19,7 @@ class NotificationManager(object):
         return cls
 
     def notify(self, event):
+        # TODO clean message
         for channel in self.notification_channels:
             logger.debug(f"notifying {channel} about {event['type']}")
             channel.notify(event)
@@ -28,6 +31,36 @@ class _NotificationChannel(object):
 
     def notify(self, event: Dict[str, str]):
         raise NotImplementedError
+
+
+class _rocketchat(_NotificationChannel):
+    def __init__(self):
+        config = configparser.ConfigParser()
+        config.read("/home/ls6/pfister/.nofconfig")
+        self.config: Dict[str, str] = config["rocketchat"]
+        self._new_rc_connection()
+
+    def _new_rc_connection(self):
+        from rocketchat.api import RocketChatAPI
+
+        self.rc = RocketChatAPI(
+            settings={
+                "username": self.config["username"],
+                "password": self.config["password"],
+                "domain": self.config["server"],
+            }
+        )
+        self.im_room = self.rc.create_im_room(self.config["yourUsername"])
+
+    def notify(self, event: Dict[str, str]):
+        try:
+            self.rc.send_message(message=str(event), room_id=self.im_room["id"])
+        except:
+            self._new_rc_connection()
+            try:
+                self.rc.send_message(message=str(event), room_id=self.im_room["id"])
+            except Exception as e:
+                logger.error(e)
 
 
 class _webhook(_NotificationChannel):
