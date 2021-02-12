@@ -10,7 +10,8 @@ v1 = client.CoreV1Api()
 w = watch.Watch()
 
 # TODO make argparse settable
-namespace = config.kube_config.list_kube_config_contexts()[0][0]["context"]["namespace"]
+#namespace = config.kube_config.list_kube_config_contexts()[0][0]["context"]["namespace"]
+namespace = config.kube_config.list_kube_config_contexts()[0][0]["context"]["user"]
 events_to_notify = ["ERROR", "DONE", "ADDED"]
 ways_to_notify = ["rocketchat"]  # rocketchat, discord, telegram, email, whatev
 
