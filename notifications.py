@@ -1,6 +1,7 @@
 import logging
 from typing import Dict, List
 import configparser
+from pathlib import Path
 
 
 logger = logging.getLogger("notification_manager")
@@ -37,7 +38,7 @@ class _rocketchat(_NotificationChannel):
     def __init__(self):
         logger.debug(f"{type(self)} instantiated")
         config = configparser.ConfigParser()
-        config.read("~/.nofconfig")
+        config.read(Path.home()/ ".nofconfig")
         self.config: Dict[str, str] = config["rocketchat"]
         self._new_rc_connection()
         logger.debug(f"{self.config['username']} will notify {self.config['yourUsername']}")
@@ -69,7 +70,7 @@ class _webhook(_NotificationChannel):
     def __init__(self):
         logger.debug(f"{type(self)} instantiated")
         config = configparser.ConfigParser()
-        config.read("~/.nofconfig")
+        config.read(Path.home()/ ".nofconfig")
         self.config: Dict[str, str] = config["webhook"]
         logger.info(f"webhook url: {self.config['url']}")
 
