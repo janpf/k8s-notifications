@@ -15,6 +15,9 @@ spec:
         - name: k8s-notifier
           image: ghcr.io/janpf/k8s-notifications:latest
           imagePullPolicy: "Always"
+          #args:
+          #  - --events_to_notify
+          #  - MODIFIED
           env:
             - name: HOME
               value: "/home/k8snotif"
@@ -39,7 +42,7 @@ spec:
           cephfs:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
-            user: pfister # TODO can this be left out?
+            user: pfister # TODO how to make user and path dynamic?
             path: "/home/ls6/pfister"
             secretRef:
               name: ceph-secret
