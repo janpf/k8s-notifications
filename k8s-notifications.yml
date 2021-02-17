@@ -27,23 +27,19 @@ spec:
               memory: ".5Gi"
           volumeMounts:
             - mountPath: /home/k8snotif/.kube
-              name: kube
+              name: home
+              subPath: .kube
+              readOnly: true
             - mountPath: /home/k8snotif/.nofconfig
-              name: nofconfig
+              name: home
+              subPath: .nofconfig
+              readOnly: true
       volumes:
-        - name: kube
+        - name: home
           cephfs:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: pfister # TODO can this be left out?
-            path: "~/.kube"
-            secretRef:
-              name: ceph-secret
-        - name: nofconfig
-          cephfs:
-            monitors:
-              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
-            user: pfister # TODO can this be left out?
-            path: "~/.nofconfig"
+            path: "/home/ls6/pfister"
             secretRef:
               name: ceph-secret
