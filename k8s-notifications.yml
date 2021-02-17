@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-notifier
+spec:
+  selector:
+    matchLabels:
+      app: k8s-notifier
+  template:
+    metadata:
+      labels:
+        app: k8s-notifier
+    spec:
+      containers:
+        - name: k8s-notifier
+          image: ghcr.io/janpf/k8s-notifications:latest
+          imagePullPolicy: "Always"
+          env:
+            - name: HOME
+              value: "/home/k8snotif"
+          resources:
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+            requests:
+              cpu: ".1"
+              memory: ".5Gi"
+          volumeMounts:
+            - mountPath: /home/k8snotif/.kube
+              name: kube
+            - mountPath: /home/k8snotif/.nofconfig
+              name: nofconfig
+      volumes:
+        - name: kube
+          cephfs:
+            monitors:
+              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
+            user: pfister # TODO can this be left out?
+            path: "~/.kube"
+            secretRef:
+              name: ceph-secret
+        - name: nofconfig
+          cephfs:
+            monitors:
+              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
+            user: pfister # TODO can this be left out?
+            path: "~/.nofconfig"
+            secretRef:
+              name: ceph-secret
