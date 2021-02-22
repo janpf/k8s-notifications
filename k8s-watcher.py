@@ -22,12 +22,12 @@ except:
     except:
         namespace = ""
 
-default_events_to_notify = ["ERROR", "DONE"] #  "ADDED"
+default_events_to_notify = ["ERROR", "DONE", "DELETED"] #  "ADDED", "MODIFIED"
 default_ways_to_notify = ["rocketchat"]  # rocketchat, discord, telegram, email, whatev
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--namespace", type=str, default=namespace, help="the namespace to watch for changes")
-parser.add_argument("--events_to_notify", type=str, nargs="+", default=default_events_to_notify, help="ERROR DONE ADDED")
+parser.add_argument("--events_to_notify", type=str, nargs="+", default=default_events_to_notify, help="ERROR DONE ADDED DELETED MODIFIED")
 parser.add_argument("--notification_channels", type=str, nargs="+", default=default_ways_to_notify, help="implement new ones in notifications.py")
 
 pargs = parser.parse_args()
