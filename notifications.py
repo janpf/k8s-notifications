@@ -35,7 +35,6 @@ class _NotificationChannel(object):
         raise NotImplementedError
 
     def notify(self, event: Dict) -> None:
-        logger.debug(str(event))
         msg = self._pprint(event)
         try:
             self._send(msg)

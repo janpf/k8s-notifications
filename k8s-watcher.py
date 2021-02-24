@@ -44,6 +44,7 @@ while True:
             logger.warning("Going to restart as 'watch' lost connection. Going to relist all existing pods:")
             continue
         logger.info(f"Event '{e['type']}' for pod '{e['object'].metadata.name}'")
+        logger.debug(str(e))
         if e["type"] in pargs.events_to_notify:
             not_man.notify(e)
             # TODO v1.read_namespaced_pod_log()
