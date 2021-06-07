@@ -39,7 +39,7 @@ logger.info(f"notification channels {pargs.notification_channels}")
 not_man = NotificationManager(pargs.notification_channels)
 logger.info("start watching cluster")
 while True:
-    for e in w.stream(v1.list_namespaced_pod, namespace=namespace):
+    for e in w.stream(v1.list_namespaced_pod, namespace=namespace, _preload_content=False):
         if e["type"] == "ERROR" and e["raw_object"]["message"].contains("too old resource"):
             logger.warning("Going to restart as 'watch' lost connection. Going to relist all existing pods:")
             continue
