@@ -15,6 +15,7 @@ class _NotificationChannel(object):
     If a persistent connection is used, optionally "_connect" as well
     If the message should be formatted differently for a channel, overwrite "_pprint"
     """
+
     def __init__(self):
         logger.debug(f"{self.__class__.__name__} instantiated")
         config = configparser.ConfigParser()
@@ -31,7 +32,7 @@ class _NotificationChannel(object):
         """
         return f"{event['type']}: {event['object'].kind} {event['object'].metadata.name} ({event['object'].metadata.owner_references[0].kind} {event['object'].metadata.owner_references[0].name})"
 
-    def _send(self, msg:str) -> None:
+    def _send(self, msg: str) -> None:
         raise NotImplementedError
 
     def notify(self, event: Dict) -> None:
@@ -45,14 +46,18 @@ class _NotificationChannel(object):
             except Exception as e:
                 logger.error(e)
 
+
 class NotificationManager(object):
     def __init__(self, notification_channels: List[str]):
-        self.notification_channels = [self._getChannel(val) for val in notification_channels]
+        self.notification_channels = [
+            self._getChannel(val) for val in notification_channels
+        ]
         logger.debug(f"found channels: {self.notification_channels}")
 
     @staticmethod
     def _getChannel(channelName: str) -> _NotificationChannel:
         import notifications as notif
+
         return getattr(notif, "_" + channelName)()
 
     def notify(self, event) -> None:
@@ -63,9 +68,11 @@ class NotificationManager(object):
 
 # implement new channels below!
 
+
 class _rocketchat(_NotificationChannel):
     def _connect(self):
         from rocketchat.api import RocketChatAPI
+
         self.rc = RocketChatAPI(
             settings={
                 "username": self.config["username"],
@@ -73,8 +80,36 @@ class _rocketchat(_NotificationChannel):
                 "domain": self.config["server"],
             }
         )
-        logging.getLogger("base").setLevel(logging.WARN) # FIXME still logs on debug level
+        logging.getLogger("base").setLevel(
+            logging.WARN
+        )  # FIXME still logs on debug level
         self.im_room = self.rc.create_im_room(self.config["yourUsername"])
 
     def _send(self, message: str):
         self.rc.send_message(message=message, room_id=self.im_room["id"])
+
+
+class _elasticsearch(_NotificationChannel):
+    def _connect(self):
+        from elasticsearch import Elasticsearch, helpers
+        import ssl
+        from elasticsearch.connection import create_ssl_context
+        import requests
+        from requests.packages.urllib3.exceptions import InsecureRequestWarning
+        import urllib3
+
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+        self.es = Elasticsearch(
+            [
+                f'{self.config["protocol"]}://{self.config["username"]}:{self.config["password"]}@{self.config["url"]}:{self.config["port"]}'
+            ],
+            ssl_context=ssl_context,
+        )
+
+    def _pprint(self, event: Dict):
+        return event
+
+    def _send(self, message: Dict):
+        self.es.index(index=self.config["index"], body=message)

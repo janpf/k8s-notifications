@@ -15,9 +15,16 @@ spec:
         - name: k8s-notifier
           image: ghcr.io/janpf/k8s-notifications:latest
           imagePullPolicy: "Always"
-          #args:
-          #  - --events_to_notify
-          #  - MODIFIED
+          args:
+            - --events_to_notify
+            - ERROR
+            - DONE
+            - ADDED
+            - DELETED
+            - MODIFIED
+            - --notification_channels
+            - rocketchat
+            - elasticsearch
           env:
             - name: HOME
               value: "/home/k8snotif"
