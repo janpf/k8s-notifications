@@ -101,6 +101,11 @@ class _elasticsearch(_NotificationChannel):
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+        # ignore https errors:
+        ssl_context = create_ssl_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+
         self.es = Elasticsearch(
             [
                 f'{self.config["protocol"]}://{self.config["username"]}:{self.config["password"]}@{self.config["url"]}:{self.config["port"]}'
