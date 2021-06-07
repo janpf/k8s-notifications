@@ -2,7 +2,7 @@ import logging
 from typing import Dict, List
 import configparser
 from pathlib import Path
-
+import json
 
 logger = logging.getLogger("notification_manager")
 config_file = Path.home() / ".nofconfig"
@@ -114,7 +114,7 @@ class _elasticsearch(_NotificationChannel):
         )
 
     def _pprint(self, event: Dict):
-        return event
+        return json.loads(json.dumps(event))
 
     def _send(self, message: Dict):
         self.es.index(index=self.config["index"], body=message)
