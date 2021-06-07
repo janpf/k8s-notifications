@@ -114,7 +114,7 @@ class _elasticsearch(_NotificationChannel):
         )
 
     def _pprint(self, event: Dict):
-        return json.loads(json.dumps(event))
+        return event.to_dict()
 
     def _send(self, message: Dict):
         self.es.index(index=self.config["index"], body=message)
