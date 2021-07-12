@@ -28,6 +28,8 @@ spec:
           env:
             - name: HOME
               value: "/home/k8snotif"
+            - name: USER
+              value: pfister
           resources:
             limits:
               cpu: "1"
@@ -39,6 +41,10 @@ spec:
             - mountPath: /home/k8snotif/.kube
               name: home
               subPath: .kube
+              readOnly: true
+            - mountPath: /home/k8snotif/.config
+              name: home
+              subPath: .config
               readOnly: true
             - mountPath: /home/k8snotif/.nofconfig
               name: home

@@ -3,6 +3,7 @@ from typing import Dict, List
 import configparser
 from pathlib import Path
 import json
+import ntfy
 
 logger = logging.getLogger("notification_manager")
 config_file = Path.home() / ".nofconfig"
@@ -118,3 +119,8 @@ class _elasticsearch(_NotificationChannel):
 
     def _send(self, message: Dict):
         self.es.index(index=self.config["index"], body=message)
+
+
+class _ntfy(_NotificationChannel):
+    def _send(self, msg: str) -> None:
+        ntfy.notify(msg, title="K8s notifier")

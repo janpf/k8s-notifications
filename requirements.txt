@@ -1,3 +1,7 @@
 kubernetes
 rocket-python
 elasticsearch
+ntfy[matrix]
+ntfy[rocketchat]
+ntfy[emoji]
+ntfy[pushbullet]
